@@ -1,0 +1,37 @@
+# Виртуальное окружение
+.venv/
+venv/
+env/
+
+# Базы данных
+*.sqlite3
+
+# Компиляция Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Настройки IDE (PyCharm, VSCode и др.)
+.idea/
+.vscode/
+
+# Логи
+*.log
+
+# Кэш Django
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.mo
+*.egg-info/
+*.egg
+*.manifest
+*.spec
+build/
+dist/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
