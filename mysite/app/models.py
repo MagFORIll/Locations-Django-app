@@ -44,10 +44,12 @@ class LocationImage(models.Model):
     location = models.ForeignKey(Location, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='locations/gallery/')
     caption = models.CharField(max_length=255, blank=True, verbose_name='Подпись')
+    position = models.PositiveIntegerField(default=0, verbose_name='Порядок')
 
     class Meta:
         verbose_name = 'Фото локации'
         verbose_name_plural = 'Фото локаций'
+        ordering = ['position']
 
     def __str__(self):
         return f'Фото для {self.location.title}'
