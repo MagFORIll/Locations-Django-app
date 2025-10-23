@@ -29,6 +29,28 @@
       max-width: 100%;
     }
 
+    .main-photo {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+    }
+
+    .text-muted {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .gallery-photo {
+      max-height: 200px;
+      object-fit: cover;
+    }
+
+    .long-description {
+      font-size: 0.96rem;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
     .sidebar-content {
       padding: 14px 20px;
       height: 100%;
@@ -39,35 +61,32 @@
     }
   </style>
   <script id="places-geojson" type="application/json">
-    {
-      "type": "FeatureCollection",
-      "features": [
-        {
-          "type": "Feature",
-          "geometry": {
-            "type": "Point",
-            "coordinates": [37.62, 55.793676]
-          },
-          "properties": {
-            "title": "«Легенды Москвы",
-            "placeId": "moscow_legends",
-            "detailsUrl": "./static/places/moscow_legends.json"
-          }
+  {
+    "type": "FeatureCollection",
+    "features": [
+      {% for loc in locations %}
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [{{ loc.longitude }}, {{ loc.latitude }}]
         },
-        {
-          "type": "Feature",
-          "geometry": {
-            "type": "Point",
-            "coordinates": [37.64, 55.753676]
-          },
-          "properties": {
-            "title": "Крыши24.рф",
-            "placeId": "roofs24",
-            "detailsUrl": "./static/places/roofs24.json"
-          }
+        "properties": {
+          "title": "{{ loc.title|escapejs }}",
+          "placeId": "{{ loc.place_id|escapejs }}",
+          "description_short": "{{ loc.description_short|escapejs }}",
+          "description_long": "{{ loc.description_long|escapejs }}",
+          "imgs": [
+            {% if loc.image %}"{{ loc.image.url }}"{% if loc.images.all %},{% endif %}{% endif %}
+            {% for img in loc.images.all %}
+              "{{ img.image.url }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ]
         }
-      ]
-    }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
   </script>
 
   <script id="app-template" type="text/template">
@@ -83,15 +102,16 @@
         </div>
       </div>
 
-      <div class="place-description" v-if="selectedPlace">
+      <div class="place-description" v-if="selectedPlace && selectedPlace.title">
+        <img v-if="mainPhotoSrc"
+             v-bind:src="mainPhotoSrc"
+             class="d-block shadow mb-3 rounded main-photo"
+             v-bind:alt="selectedPlace.title">
 
-        <img v-if="mainPhotoSrc" v-bind:src="mainPhotoSrc" class="d-block shadow mb-3 rounded" v-bind:alt="selectedPlace.title">
+        <h5 class="mb-3"><div v-html="selectedPlace.title" class="title"></div></h5>
+        <p><div v-html="selectedPlace.short_description" class="short_description"></div></p>
 
-        <h5 class="mb-3">{{ selectedPlace.title }}</h5>
-
-        <p>{{ selectedPlace.short_description }}</p>
-
-        <div id="place-photos" class="carousel slide mb-3 shadow" data-ride="carousel" data-interval="5000">
+        <div v-if="carouselImgs.length" id="place-photos" class="carousel slide mb-4 shadow-sm" data-ride="carousel" data-interval="4000">
           <ol class="carousel-indicators">
             <template v-for="(img, index) in carouselImgs" :key="img">
               <li v-on:click="handlePhotosClick(index)" v-bind:class="{active: index==0}"></li>
@@ -100,24 +120,23 @@
           <div class="carousel-inner">
             <template v-for="(img, index) in carouselImgs" :key="img">
               <div v-bind:class="{'carousel-item bg-light': 1, active: index==0}">
-                <img v-bind:src="img" class="d-block w-100" v-bind:alt="selectedPlace.title">
+                <img v-bind:src="img" class="d-block w-100 rounded gallery-photo" v-bind:alt="selectedPlace.title">
               </div>
             </template>
           </div>
-          <template v-if="carouselImgs.length">
-            <a class="carousel-control-prev" v-on:click="handlePhotosClick('prev')" role="button">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="sr-only">Previous</span>
-            </a>
-            <a class="carousel-control-next" v-on:click="handlePhotosClick('next')" role="button">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="sr-only">Next</span>
-            </a>
-          </template>
+          <a class="carousel-control-prev" v-on:click="handlePhotosClick('prev')" role="button">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" v-on:click="handlePhotosClick('next')" role="button">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
         </div>
 
-        <div v-html="selectedPlace.long_description"></div>
+        <div v-html="selectedPlace.long_description" class="long-description"></div>
       </div>
+
     </div>
   </script>
 
@@ -220,7 +239,7 @@
           marker.on('click', function(event){
             log.debug('Feature selected', geoJsonPoint);
             sidebar.show();
-            loadPlaceInfo(geoJsonPoint.properties.placeId, geoJsonPoint.properties.detailsUrl);
+            loadPlaceInfo(geoJsonPoint.properties);
           });
           return marker;
         }
@@ -278,36 +297,15 @@
       sidebarApp.loadingPlaceId = null;
     })
 
-    async function loadPlaceInfo(placeId, detailsUrl){
-      sidebarApp.selectedPlace = null;
-      sidebarApp.loadingPlaceId = placeId;
-
-      try {
-        let response = await fetch(detailsUrl);
-
-        if (!response.ok){
-          return;
-        }
-
-        let data = await response.json();
-
-        if (sidebarApp.loadingPlaceId != placeId){
-          // Place loading was cancelled by user
-          return
-        }
-
-        sidebarApp.selectedPlace = {
-          title: data.title,
-          placeId: placeId,
-          imgs: data.imgs || [],
-          short_description: data.description_short,
-          long_description: data.description_long,
-        };
-      } finally {
-        if (sidebarApp.loadingPlaceId == placeId){
-          sidebarApp.loadingPlaceId = null;
-        }
-      }
+    function loadPlaceInfo(geoJsonProperties) {
+      sidebarApp.selectedPlace = {
+        title: geoJsonProperties.title,
+        placeId: geoJsonProperties.placeId,
+        imgs: geoJsonProperties.imgs || [],
+        short_description: geoJsonProperties.description_short,
+        long_description: geoJsonProperties.description_long,
+      };
+      sidebarApp.loadingPlaceId = null;
     }
   </script>
 </body>

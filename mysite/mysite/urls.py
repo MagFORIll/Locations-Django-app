@@ -17,11 +17,23 @@ Including another URLconf
 from django.contrib import admin
 from django.shortcuts import render
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
+from app.models import Location
+
+from app.views import locations_geojson, location_details
+
 
 def home(request):
-    return render(request, 'index.html')
+    locations = Location.objects.all()
+    return render(request, 'index.html', {'locations': locations})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home),
+    path('', home, name='home'),
+    path('api/locations/', locations_geojson, name='locations_geojson'),
+    path('api/locations/<int:pk>/', location_details, name='location_details'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
