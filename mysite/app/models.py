@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.html import mark_safe
 
 # Create your models here.
 class Location(models.Model):
@@ -31,6 +32,12 @@ class Location(models.Model):
                 'placeId': self.id,
             },
         }
+
+    def image_preview(self):
+        if self.image:
+            return mark_safe(f'<img src="{self.image.url}" width="100" height="100" style="object-fit: cover; border-radius: 8px;" />')
+        return '-'
+    image_preview.short_description = 'Превью'
 
 
 class LocationImage(models.Model):
