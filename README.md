@@ -1,7 +1,7 @@
 # Locations — Django App
 
 Мини-проект для отображения **интерактивных локаций с картой, описанием, галереей и API** на Django.
-
+Ссылка на pythonanywhere: https://magforill.pythonanywhere.com/
 ---
 
 ##  Возможности
