@@ -5,6 +5,7 @@ from django.utils.html import mark_safe
 
 # Register your models here.
 class LocationImageInline(SortableInlineAdminMixin, admin.TabularInline):
+    """Инлайн для фотографий локации с возможностью drag-and-drop сортировки."""
     model = LocationImage
     extra = 0
     readonly_fields = ('image_preview',)
@@ -13,6 +14,7 @@ class LocationImageInline(SortableInlineAdminMixin, admin.TabularInline):
     ordering = ('position',)
 
     def image_preview(self, obj):
+        """Отображает миниатюру изображения в админке."""
         if obj.image:
             return mark_safe(f'<img src="{obj.image.url}" width="80" height="80" style="object-fit: cover; border-radius: 6px;" />')
         return '-'
@@ -20,6 +22,7 @@ class LocationImageInline(SortableInlineAdminMixin, admin.TabularInline):
 
 @admin.register(Location)
 class LocationAdmin(SortableAdminBase, admin.ModelAdmin):
+    """Админка для модели Location с превью изображений и drag&drop фотогалереей."""
     list_display = ('title', 'place_id')
     readonly_fields = ('image_preview', )
     inlines = [LocationImageInline]
