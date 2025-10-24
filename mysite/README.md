@@ -19,7 +19,7 @@
 
 ```bash
 # 1. Клонируем репозиторий
-git clone https://github.com/MagFORIll/Test.git
+git clone https://github.com/MagFORIll/Locations-Django-app.git
 cd mysite
 
 # 2. Создаём виртуальное окружение
