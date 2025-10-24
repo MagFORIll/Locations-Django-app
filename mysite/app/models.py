@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.html import mark_safe
+from ckeditor_uploader.fields import RichTextUploadingField
 
 # Create your models here.
 class Location(models.Model):
@@ -8,8 +9,8 @@ class Location(models.Model):
     latitude = models.FloatField(verbose_name='Широта')
     longitude = models.FloatField(verbose_name='Долгота')
     image = models.ImageField(upload_to='locations/', blank=True, null=True, verbose_name='Главное фото')
-    description_short = models.TextField(blank=True, verbose_name='Короткое описание')
-    description_long = models.TextField(blank=True, verbose_name='Длинное описание')
+    description_short = RichTextUploadingField(blank=True, verbose_name='Короткое описание')
+    description_long = RichTextUploadingField(blank=True, verbose_name='Длинное описание')
 
     class Meta:
         verbose_name = 'Локация'

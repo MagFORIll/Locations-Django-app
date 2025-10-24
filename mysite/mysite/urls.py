@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.shortcuts import render
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from app.models import Location
@@ -33,6 +33,7 @@ urlpatterns = [
     path('', home, name='home'),
     path('api/locations/', locations_geojson, name='locations_geojson'),
     path('api/locations/<int:pk>/', location_details, name='location_details'),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 if settings.DEBUG:
